@@ -4,6 +4,15 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('D:\\intents.jks')
+            storePassword '123456'
+            keyAlias 'key0'
+            keyPassword '123456'
+        }
+
+    }
     namespace 'com.intentsdemo'
     compileSdk 33
 
@@ -18,10 +27,102 @@ android {
     }
 
     buildTypes {
+
         release {
+
             minifyEnabled false
+
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            ext.config = getProps('../config/release.properties')
+            signingConfig signingConfigs.debug
+            ext.config.each { p ->
+
+                if(p.key == "APPNAME"){
+
+                    resValue "string","app_name", p.value
+
+                }else if(p.key == "WELCOME_MSG"){
+
+                    resValue "string","wel_msg", p.value
+
+                }
+
+                else if(p.key=="APPLICATION_ID_SUFFIX"){
+
+                    applicationIdSuffix p.value
+
+                }else
+
+                    buildConfigField 'String', p.key, p.value
+
+            }
+
+
         }
+
+        staging {
+
+            minifyEnabled false
+
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+
+            ext.config = getProps('../config/staging.properties')
+
+            ext.config.each { p ->
+
+                if (p.key == "APPNAME") {
+
+                    resValue "string", "app_name", p.value.replace('"', '')
+
+                } else if(p.key == "WELCOME_MSG"){
+
+                    resValue "string","wel_msg", p.value
+
+                }else if (p.key == "APPLICATION_ID_SUFFIX") {
+
+                    applicationIdSuffix p.value
+
+                } else {
+
+                    buildConfigField 'String', p.key, p.value
+
+                }
+
+            }
+
+        }
+
+        debug {
+
+            minifyEnabled false
+
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            ext.config = getProps('../config/development.properties')
+
+            ext.config.each { p ->
+
+                if (p.key == "APPNAME") {
+
+                    resValue "string", "app_name", p.value
+
+                } else if(p.key == "WELCOME_MSG"){
+
+                    resValue "string","wel_msg", p.value
+
+                }else if (p.key == "APPLICATION_ID_SUFFIX") {
+
+                    applicationIdSuffix p.value
+
+                } else
+
+                    buildConfigField 'String', p.key, p.value
+            }
+
+        }
+
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -41,4 +142,10 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}
+def getProps(path) {
+    Properties props = new Properties()
+    props.load(new FileInputStream(file(path)))
+    return props
+
 }
